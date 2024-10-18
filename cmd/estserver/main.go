@@ -35,9 +35,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/globalsign/est"
-	"github.com/globalsign/est/internal/basiclogger"
-	"github.com/globalsign/est/internal/mockca"
+	"github.com/eurotech/est"
+	"github.com/eurotech/est/internal/basiclogger"
+	"github.com/eurotech/est/internal/mockca"
 	"github.com/globalsign/pemfile"
 )
 

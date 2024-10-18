@@ -768,7 +768,7 @@ func newTestServer(t *testing.T) (*httptest.Server, *x509.Certificate, string) {
 	t.Helper()
 
 	// Create new transient CA.
-	ca, err := mockca.NewTransient()
+	ca, err := mockca.NewTransient(false)
 	if err != nil {
 		t.Fatalf("failed to create new mock CA: %v", err)
 	}

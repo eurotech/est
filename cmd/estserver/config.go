@@ -30,6 +30,8 @@ type config struct {
 	RateLimit           int           `json:"rate_limit"`
 	Timeout             int           `json:"timeout"`
 	Logfile             string        `json:"log_file"`
+	RequireClientCert   bool          `json:"require_client_cert"`
+	KeyLogFile          string        `json:"key_log_file"`
 }
 
 // mockCAConfig contains the mock CA configuration.

@@ -47,7 +47,7 @@ const (
 func TestCACerts(t *testing.T) {
 	t.Parallel()
 
-	ca, err := mockca.NewTransient()
+	ca, err := mockca.NewTransient(false)
 	if err != nil {
 		t.Fatalf("failed to create mock CA: %v", err)
 	}
@@ -117,7 +117,7 @@ func TestCACerts(t *testing.T) {
 func TestCSRAttrs(t *testing.T) {
 	t.Parallel()
 
-	ca, err := mockca.NewTransient()
+	ca, err := mockca.NewTransient(false)
 	if err != nil {
 		t.Fatalf("failed to create mock CA: %v", err)
 	}
@@ -180,7 +180,7 @@ func TestCSRAttrs(t *testing.T) {
 func TestEnrollReenroll(t *testing.T) {
 	t.Parallel()
 
-	ca, err := mockca.NewTransient()
+	ca, err := mockca.NewTransient(false)
 	if err != nil {
 		t.Fatalf("failed to create mock CA: %v", err)
 	}
@@ -301,7 +301,7 @@ func TestEnrollReenroll(t *testing.T) {
 func TestServerKeyGen(t *testing.T) {
 	t.Parallel()
 
-	ca, err := mockca.NewTransient()
+	ca, err := mockca.NewTransient(false)
 	if err != nil {
 		t.Fatalf("failed to create mock CA: %v", err)
 	}
@@ -451,7 +451,7 @@ func TestServerKeyGen(t *testing.T) {
 func TestTPMEnroll(t *testing.T) {
 	t.Parallel()
 
-	ca, err := mockca.NewTransient()
+	ca, err := mockca.NewTransient(false)
 	if err != nil {
 		t.Fatalf("failed to create mock CA: %v", err)
 	}

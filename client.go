@@ -100,7 +100,7 @@ type Client struct {
 
 // Client constants.
 const (
-	estVersion = "v1.0.6"
+	estVersion = "v1.0.6.k1"
 	userAgent  = "GlobalSign EST Client " + estVersion + " github.com/globalsign/est"
 )
 

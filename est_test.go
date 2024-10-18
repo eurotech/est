@@ -83,7 +83,7 @@ var (
 
 func init() {
 	var err error
-	if altCA, err = mockca.NewTransient(); err != nil {
+	if altCA, err = mockca.NewTransient(false); err != nil {
 		panic(fmt.Sprintf("failed to create alternate CA: %v", err))
 	}
 }
@@ -848,7 +848,7 @@ func newTestServer(t *testing.T) (*httptest.Server, func() *est.Client) {
 	t.Helper()
 
 	// Create new transient CA.
-	ca, err := mockca.NewTransient()
+	ca, err := mockca.NewTransient(false)
 	if err != nil {
 		t.Fatalf("failed to create new mock CA: %v", err)
 	}

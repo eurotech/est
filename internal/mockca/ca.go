@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math/big"
 	"net/http"
 	"strconv"
@@ -45,8 +46,9 @@ import (
 // MockCA is a mock, non-production certificate authority useful for testing
 // purposes only.
 type MockCA struct {
-	certs []*x509.Certificate
-	key   interface{}
+	certs             []*x509.Certificate
+	key               interface{}
+	requireClientCert bool
 }
 
 // Global constants.
@@ -87,9 +89,9 @@ func (ca *MockCA) CACerts(
 
 // CSRAttrs returns an empty sequence of CSR attributes, unless the additional
 // path segment is:
-//  - "csrattrs", in which case it returns the same example sequence described
-//    in RFC7030 4.5.2; or
-//  - "triggererrors", in which case an error is returned for testing purposes.
+//   - "csrattrs", in which case it returns the same example sequence described
+//     in RFC7030 4.5.2; or
+//   - "triggererrors", in which case an error is returned for testing purposes.
 func (ca *MockCA) CSRAttrs(
 	ctx context.Context,
 	aps string,
@@ -142,6 +144,18 @@ func (ca *MockCA) Enroll(
 	aps string,
 	r *http.Request,
 ) (*x509.Certificate, error) {
+
+	if r != nil {
+		if len(r.TLS.PeerCertificates) > 0 {
+			log.Println("leaf cert CN: ", r.TLS.PeerCertificates[0].Subject.CommonName)
+		} else if ca.requireClientCert {
+			return nil, caError{
+				status: http.StatusUnauthorized,
+				desc:   "client certificate not provided",
+			}
+		}
+	}
+
 	// Process any requested triggered errors.
 	if aps == triggerErrorsAPS {
 		switch csr.Subject.CommonName {
@@ -376,7 +390,7 @@ func (ca *MockCA) TPMEnroll(
 // is provided, they should be in order with the issuing (intermediate) CA
 // certificate first, and the root CA certificate last. The private key should
 // be associated with the public key in the first, issuing CA certificate.
-func New(cacerts []*x509.Certificate, key interface{}) (*MockCA, error) {
+func New(cacerts []*x509.Certificate, key interface{}, requireClientCert bool) (*MockCA, error) {
 	if len(cacerts) < 1 {
 		return nil, errors.New("no CA certificates provided")
 	} else if key == nil {
@@ -390,8 +404,9 @@ func New(cacerts []*x509.Certificate, key interface{}) (*MockCA, error) {
 	}
 
 	return &MockCA{
-		certs: cacerts,
-		key:   key,
+		certs:             cacerts,
+		key:               key,
+		requireClientCert: requireClientCert,
 	}, nil
 }
 
@@ -401,7 +416,7 @@ func New(cacerts []*x509.Certificate, key interface{}) (*MockCA, error) {
 // certificates should appear in order with the issuing (intermediate) CA
 // certificate first, and the root certificate last. The private key should be
 // associated with the public key in the first certificate in certspath.
-func NewFromFiles(certspath, keypath string) (*MockCA, error) {
+func NewFromFiles(certspath, keypath string, requireClientCert bool) (*MockCA, error) {
 	certs, err := pemfile.ReadCerts(certspath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load CA certificates from file: %w", err)
@@ -412,12 +427,12 @@ func NewFromFiles(certspath, keypath string) (*MockCA, error) {
 		return nil, fmt.Errorf("failed to load CA private key from file: %w", err)
 	}
 
-	return New(certs, key)
+	return New(certs, key, requireClientCert)
 }
 
 // NewTransient creates a new mock certificate authority with an automatically
 // generated and transient CA certificates chain for testing purposes.
-func NewTransient() (*MockCA, error) {
+func NewTransient(requireClientCert bool) (*MockCA, error) {
 	// Generate a random element for the CA subject common names.
 	randomSuffix, err := makeRandomIdentifier(8)
 	if err != nil {
@@ -493,7 +508,7 @@ func NewTransient() (*MockCA, error) {
 		return nil, fmt.Errorf("failed to parse intermediate CA certificate: %w", err)
 	}
 
-	return New([]*x509.Certificate{interCert, rootCert}, interKey)
+	return New([]*x509.Certificate{interCert, rootCert}, interKey, requireClientCert)
 }
 
 // makePublicKeyIdentifier builds a public key identifier in accordance with the

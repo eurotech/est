@@ -85,12 +85,12 @@ func main() {
 	// create a transient one.
 	var ca *mockca.MockCA
 	if cfg.MockCA != nil {
-		ca, err = mockca.NewFromFiles(cfg.MockCA.Certs, cfg.MockCA.Key)
+		ca, err = mockca.NewFromFiles(cfg.MockCA.Certs, cfg.MockCA.Key, cfg.RequireClientCert)
 		if err != nil {
 			log.Fatalf("failed to create mock CA: %v", err)
 		}
 	} else {
-		ca, err = mockca.NewTransient()
+		ca, err = mockca.NewTransient(cfg.RequireClientCert)
 		if err != nil {
 			log.Fatalf("failed to create mock CA: %v", err)
 		}
@@ -201,6 +201,16 @@ func main() {
 			},
 		},
 		ClientCAs: clientCAs,
+	}
+
+	if cfg.KeyLogFile != "" {
+		w, err := os.OpenFile(cfg.KeyLogFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+
+		if err != nil {
+			log.Fatalf("failed to open keylog file: %v", err)
+		} else {
+			tlsCfg.KeyLogWriter = w
+		}
 	}
 
 	// Create a password function which requires a HTTP Basic Authentication
